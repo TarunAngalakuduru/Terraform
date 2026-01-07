@@ -1,7 +1,12 @@
 name: Terraform Plan & Apply
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   plan-and-apply:

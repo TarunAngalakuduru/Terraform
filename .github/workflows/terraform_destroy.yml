@@ -1,0 +1,36 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform 1.14.2
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.2"
+
+      # === AWS credentials injection ===
+      - name: Configure AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        run: terraform init
+
+      # === Manual approval step ===
+      - name: Wait for approval before destroy
+        uses: pascalgn/manual-workflow-approval@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve

@@ -6,6 +6,7 @@ on:
 jobs:
   destroy:
     runs-on: ubuntu-latest
+    environment: terraform-destroy   # <-- approval happens here
 
     steps:
       - name: Checkout repository
@@ -16,7 +17,6 @@ jobs:
         with:
           terraform_version: "1.14.2"
 
-      # === AWS credentials injection ===
       - name: Configure AWS Credentials
         run: |
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
@@ -25,12 +25,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-
-      # === Manual approval step ===
-      - name: Wait for approval before destroy
-        uses: pascalgn/manual-workflow-approval@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve

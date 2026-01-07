@@ -1,16 +1,12 @@
 name: Terraform Plan & Apply
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   plan-and-apply:
     runs-on: ubuntu-latest
+    environment: terraform-apply   # <-- approval happens here
 
     steps:
       - name: Checkout repository
@@ -21,7 +17,6 @@ jobs:
         with:
           terraform_version: "1.14.2"
 
-      # === AWS credentials injection ===
       - name: Configure AWS Credentials
         run: |
           echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
@@ -36,13 +31,6 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
-
-      # === Manual approval step ===
-      - name: Wait for approval
-        uses: pascalgn/manual-workflow-approval@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          # will wait for approval comment
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan

@@ -1,0 +1,37 @@
+name: Terraform Plan & Apply
+
+on:
+  workflow_dispatch:
+
+jobs:
+  plan-and-apply:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform 1.14.2
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.2"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      # -------- MANUAL APPROVAL ----------
+      - name: Wait for approval before apply
+        uses: pascalgn/manual-workflow-approval@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # default approval word = "approve"
+      # -----------------------------------
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
